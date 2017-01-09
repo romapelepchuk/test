@@ -68,7 +68,6 @@ public class DemoApplication {
 				// Get user input for N
 				System.out.println("Input Expected number of top word occurences (N): ");
 				int n = scanner.nextInt();
-				scanner.close();
 
 				// Print out the top N occurences:
 				System.out.println(String.format("Top %s Frequent Words: ", n));
@@ -94,6 +93,7 @@ public class DemoApplication {
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
+				scanner.close();
 				System.out.println("Basta.");
 			}
 		};
