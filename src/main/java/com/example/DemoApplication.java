@@ -51,6 +51,8 @@ public class DemoApplication {
 					.map(String::toLowerCase).collect(Collectors.toMap(word -> word, word -> 1, Integer::sum));
 
 			// Print out the top N occurences:
+			System.out.println("Most Frequent Words: ");
+
 			result.entrySet().stream().sorted((a, b) -> a.getValue() == b.getValue() ? a.getKey().compareTo(b.getKey())
 					: b.getValue() - a.getValue()).limit(n).forEach(System.out::println);
 
