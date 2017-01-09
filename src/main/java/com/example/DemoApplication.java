@@ -1,9 +1,13 @@
 package com.example;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.bcel.util.ClassLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -11,62 +15,72 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-import com.example.lambdas.Lesson1;
-
 @SpringBootApplication
 public class DemoApplication {
 
 	@Autowired
-	Lesson1 lesson1;
+	FileReader fileReader;
 
 	public static void main(String[] args) {
 		// System.out.println("Welcome To Spring Boot! Args: " + args);
 		SpringApplication.run(DemoApplication.class, args);
-
 	}
 
 	@Bean
-	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+	public CommandLineRunner runTasks(ApplicationContext ctx) {
 		return args -> {
+			readerTask();
+		};
 
-			System.out.println("Let's inspect the beans provided by Spring Boot:");
+	}
 
-			String[] beanNames = ctx.getBeanDefinitionNames();
-			Arrays.sort(beanNames);
-			for (String beanName : beanNames) {
-				System.out.println(beanName);
+	private void readerTask() {
+		Scanner scanner = new Scanner(System.in);
+		try {
+
+			System.out.println("Running Reader test. Input Expected number of top occurences (N): ");
+
+			int n = scanner.nextInt();
+			scanner.close();
+
+			Stream<String> fileStream = fileReader.readFile(ClassLoader.getSystemResource("words.txt").toURI());
+
+			Map<String, Integer> result = fileStream.flatMap(line -> Stream.of(line.split("\\s+")))
+					.map(String::toLowerCase).collect(Collectors.toMap(word -> word, word -> 1, Integer::sum));
+
+			result.entrySet().stream().sorted((a, b) -> a.getValue() == b.getValue() ? a.getKey().compareTo(b.getKey())
+					: b.getValue() - a.getValue()).limit(n).forEach(System.out::println);
+			System.out.println("-----------\n");
+			System.out.println("-----------\n");
+			System.out.println("Running Palindrome test. Checking every word in file if it's a palindrome ");
+
+			for (String s : result.keySet()) {
+				palindromeCheck(s);
 			}
-			List<String> argsList = new ArrayList(Arrays.asList(args));
-			argsList.add("abc");
-			argsList.add("defG");
-			argsList.add("Yz");
 
-			argsList.forEach(s -> System.out.println("I am am an argument insude a consumer lambda: " + s));
+		} catch (
 
-			argsList.removeIf(s -> s.startsWith("--"));
-			System.out.println("argsList after removeIf: " + argsList);
-
-			argsList.sort((x, y) -> x.length() - y.length());
-			System.out.println("argsList after lenght sort: " + argsList);
-
-			argsList.sort((String x, String y) -> y.compareToIgnoreCase(x));
-			System.out.println("argsList after reverse alphabetical sort: " + argsList);
-
-			argsList.replaceAll(s -> s.toUpperCase());
-			System.out.println("argsList after replaceAll: " + argsList);
-
-		};
+		IOException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 
-	@Bean
-	public CommandLineRunner commandLineRunnerStaticReference(ApplicationContext ctx) {
-		return System.out::println;
+	private void palindromeCheck(String string) {
+		boolean isPalindrome = isPalindrome(string);
+
+		System.out.println(String.format("The line %s %s a palindrome", string, isPalindrome ? "is" : "is not"));
+		System.out.println("-----------\n");
 	}
 
-	@Bean
-	public CommandLineRunner commandLineRunnerLambdaExcerices(ApplicationContext ctx) {
-		return args -> {
-			lesson1.runExercises();
-		};
+	private boolean isPalindrome(String string) {
+
+		int n = string.length();
+		for (int i = 0; i < n / 2; ++i) {
+			if (string.charAt(i) != string.charAt(n - i - 1))
+				return false;
+		}
+		return true;
 	}
 }
