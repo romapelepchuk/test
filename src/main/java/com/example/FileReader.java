@@ -11,6 +11,12 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+/**
+ * File Reader Class
+ * 
+ * @author RomanPelepchuk
+ *
+ */
 @Component
 public class FileReader {
 

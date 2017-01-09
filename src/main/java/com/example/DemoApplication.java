@@ -2,13 +2,14 @@ package com.example;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.util.ClassLoader;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -17,80 +18,109 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 
+/**
+ * Spring Boot Demo Application
+ * 
+ * @author RomanPelepchuk
+ *
+ */
 @SpringBootApplication
 public class DemoApplication {
 
+	/**
+	 * The File Reader
+	 */
 	@Autowired
 	FileReader fileReader;
 
+	/**
+	 * The Main method. (Spring Boot will look for this when starting up.)
+	 * 
+	 * @param args
+	 *            the args
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
+	/**
+	 * Will run upon startup by Spring
+	 * 
+	 * @param ctx
+	 *            the application Context
+	 * @return Implementation of {@link CommandLineRunner}functional Interface
+	 */
 	@Bean
 	public CommandLineRunner runTasks(ApplicationContext ctx) {
 		return args -> {
-			readerTask();
-		};
 
-	}
+			// Init the Scanner
+			Scanner scanner = new Scanner(System.in);
+			try {
 
-	private void readerTask() {
-		Scanner scanner = new Scanner(System.in);
-		try {
+				System.out.println("Running Lohika test tasks.");
+				Stream<String> fileStream = fileReader.readFile(ClassLoader.getSystemResource("words.txt").toURI());
 
-			System.out.println("Running Reader test. Input Expected number of top occurences (N): ");
+				// Get a Map of words
+				Map<String, Integer> result = fileStream.flatMap(line -> Stream.of(line.split("\\s+")))
+						.map(String::toLowerCase).collect(Collectors.toMap(word -> word, word -> 1, Integer::sum));
 
-			int n = scanner.nextInt();
-			scanner.close();
+				// Get user input for N
+				System.out.println("Input Expected number of top word occurences (N): ");
+				int n = scanner.nextInt();
+				scanner.close();
 
-			Stream<String> fileStream = fileReader.readFile(ClassLoader.getSystemResource("words.txt").toURI());
+				// Print out the top N occurences:
+				System.out.println(String.format("Top %s Frequent Words: ", n));
 
-			// Get a Map of words and count
-			Map<String, Integer> result = fileStream.flatMap(line -> Stream.of(line.split("\\s+")))
-					.map(String::toLowerCase).collect(Collectors.toMap(word -> word, word -> 1, Integer::sum));
+				// Sort Map Entries by Value and print top records (if count is
+				// identical sort by word)
+				result.entrySet().stream().sorted((a, b) -> a.getValue() == b.getValue()
+						? a.getKey().compareTo(b.getKey()) : b.getValue() - a.getValue()).limit(n)
+						.forEach(System.out::println);
 
-			// Print out the top N occurences:
-			System.out.println("Most Frequent Words: ");
+				System.out.println("-----------\n");
 
-			result.entrySet().stream().sorted((a, b) -> a.getValue() == b.getValue() ? a.getKey().compareTo(b.getKey())
-					: b.getValue() - a.getValue()).limit(n).forEach(System.out::println);
+				// Check every word in file if is a Palindrome:
+				palindromeCheck(result.keySet());
 
-			System.out.println("-----------\n");
-			System.out.println("-----------\n");
-			System.out.println("Running Palindrome test. Checking every word in file if it's a palindrome ");
+			} catch (
 
-			// Check every word in file if is a Palindrome:
-			for (String s : result.keySet()) {
-				palindromeCheck(s);
+			IOException e) {
+				// Loggers would go here
+				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				System.out.println("Basta.");
 			}
-
-		} catch (
-
-		IOException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		};
 	}
 
-	private void palindromeCheck(String string) {
-		boolean isPalindrome = isPalindrome(string);
+	/**
+	 * Checks a Collection of Strings if the values are Palindromes
+	 * 
+	 * @param collection
+	 *            collection of Strings
+	 */
+	protected void palindromeCheck(Collection<String> collection) {
 
-		System.out.println(String.format("The line %s %s a palindrome", string, isPalindrome ? "is" : "is not"));
+		Assert.isTrue(collection != null && !collection.isEmpty());
+		System.out.println("-----------\n");
+
+		System.out.println("Running the Palindrome test. Checking every word in collection if it's a palindrome: ");
+		collection.forEach(s -> {
+			System.out
+					.println(String.format("%s %s a palindrome", s, PalindromeUtils.isPalindrome(s) ? "is" : "is not"));
+		});
+
+		// Demo of Java 8 filtering:
+		Set<String> palindromesSet = collection.stream().filter(PalindromeUtils::isPalindrome)
+				.collect(Collectors.toSet());
+		System.out.println(String.format("%s palindrome(s) found: %s", palindromesSet.size(), palindromesSet));
 		System.out.println("-----------\n");
 	}
 
-	private boolean isPalindrome(String string) {
-
-		Assert.isTrue(StringUtils.isNotBlank(string), "String value must be provided");
-
-		int n = string.length();
-
-		for (int i = 0; i < n / 2; ++i) {
-			if (string.charAt(i) != string.charAt(n - i - 1))
-				return false;
-		}
-		return true;
-	}
 }
