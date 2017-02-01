@@ -23,7 +23,6 @@ public class FileReader {
 	/**
 	 * Retrieve the Stream of Lines from File
 	 * 
-	 * @param fileName
 	 *            the file path and name
 	 * @param uriPath
 	 * @return the stream
@@ -31,7 +30,7 @@ public class FileReader {
 	 */
 	public Stream<String> readFile(URI uriPath) throws IOException {
 		Assert.notNull(uriPath, "Uri Path must not be null!");
-
+		//Test Comment For Mac Git Commits
 		Stream<String> fileStream = null;
 		try {
 			Path path = Paths.get(uriPath);

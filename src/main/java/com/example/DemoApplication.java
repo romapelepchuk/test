@@ -58,7 +58,7 @@ public class DemoApplication {
 			Scanner scanner = new Scanner(System.in);
 			try {
 
-				System.out.println("Running Lohika test tasks.");
+				System.out.println("Running L****s test tasks.");
 				Stream<String> fileStream = fileReader.readFile(ClassLoader.getSystemResource("words.txt").toURI());
 
 				// Get a Map of words
